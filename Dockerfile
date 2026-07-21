@@ -37,7 +37,7 @@ RUN sed -i 's/main/main non-free/g' /etc/apt/sources.list.d/debian.sources
 RUN apt -y update
 
 # 2. Install the downloader
-RUN apt -y install snmp-mibs-downloader
+RUN apt -y install snmp-mibs-downloader python3-nagiosplugin
 
 RUN omd create default
 RUN omd config default set TMPFS off
