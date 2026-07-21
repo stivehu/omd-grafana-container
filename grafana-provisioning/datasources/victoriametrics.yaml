@@ -1,0 +1,9 @@
+apiVersion: 1
+datasources:
+  - name: VictoriaMetrics
+    type: victoriametrics-datasource
+    uid: victoriametrics
+    url: http://localhost:8428
+    access: proxy
+    isDefault: false
+    editable: false

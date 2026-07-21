@@ -1,0 +1,83 @@
+{
+  "id": null,
+  "uid": "vm-performance",
+  "title": "VM Performance",
+  "tags": ["victoriametrics", "performance"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+        "definition": "label_values(host)",
+        "hide": 0,
+        "includeAll": false,
+        "name": "hostname",
+        "options": [],
+        "query": "label_values(host)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Host"
+      },
+      {
+        "current": {},
+        "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+        "definition": "label_values({host=\"$hostname\"}, service)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values({host=\"$hostname\"}, service)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Service"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Performance Metrics — $hostname / $service",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 14 },
+      "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "min", "max"] }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+          "expr": "{host=\"$hostname\", service=~\"$service\"}",
+          "legendFormat": "{{service}} / {{__name__}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
