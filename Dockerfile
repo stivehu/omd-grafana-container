@@ -10,7 +10,7 @@
 
 FROM debian:12
 
-LABEL maintainer="Philip Griesbacher, philip.griesbacher@consol.de"
+LABEL maintainer="Gábor István, stive.hu@gmail.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
