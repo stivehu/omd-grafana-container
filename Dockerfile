@@ -22,7 +22,12 @@ RUN curl -fsS "https://labs.consol.de/repo/stable/monitoring-repo-consol-de-gpg-
 RUN echo "deb [signed-by=/etc/apt/trusted.gpg.d/monitoring-repo-consol-de-gpg-2026.asc] http://labs.consol.de/repo/stable/debian bookworm main" \
     > /etc/apt/sources.list.d/labs-consol-stable.list
 
-RUN apt-get update && apt-get install -y omd-labs-edition net-tools iputils-ping bc
+RUN apt-get update && apt-get install -y omd-labs-edition net-tools iputils-ping bc locales \
+    && sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
 
 # libssl1.1 compatibility for plugins compiled against OpenSSL 1.1 (Debian 8/9 era)
 RUN echo "deb http://security.debian.org/debian-security bullseye-security main" \
