@@ -94,6 +94,8 @@ COPY grafana-provisioning/dashboards/dashboards.yaml \
 RUN mkdir -p /omd/sites/default/var/grafana/dashboards/provisioned
 COPY grafana-dashboards/vm-performance.json \
      /omd/sites/default/var/grafana/dashboards/provisioned/vm-performance.json
+COPY grafana-dashboards/snmp-interface.json \
+     /omd/sites/default/var/grafana/dashboards/provisioned/snmp-interface.json
 RUN chown -R default:default \
         /omd/sites/default/etc/grafana/provisioning/ \
         /omd/sites/default/var/grafana/dashboards/

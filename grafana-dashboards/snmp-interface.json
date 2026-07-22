@@ -1,0 +1,156 @@
+{
+  "id": null,
+  "uid": "snmp-interface",
+  "title": "SNMP Interface",
+  "tags": ["snmp", "interface", "network"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+        "definition": "label_values(host)",
+        "hide": 0,
+        "includeAll": false,
+        "name": "hostname",
+        "options": [],
+        "query": "label_values(host)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Host"
+      },
+      {
+        "current": {},
+        "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+        "definition": "label_values({host=\"$hostname\"}, service)",
+        "hide": 0,
+        "includeAll": false,
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values({host=\"$hostname\"}, service)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Service"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Traffic — $hostname / $service",
+      "description": "Sávszélesség (bps): rate() × 8 az octet számlálókon. A check_snmp_int.pl kumulatív számlálókat ad vissza; a rate() kiszámolja a két mérés közötti különbséget másodpercenként.",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 10 },
+      "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "showPoints": "never",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "min", "max"] }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+          "expr": "rate(metrics_value{host=\"$hostname\", service=~\"$service\", performanceLabel=~\".*_(in|out)_octet\"}[$__rate_interval]) * 8",
+          "legendFormat": "{{service}} / {{performanceLabel}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Kihasználtság (%) — $hostname / $service",
+      "description": "Az *_in_prct és *_out_prct metrikák már százalékos értékek (nem kumulatív számlálók), ezért rate() nélkül jelennek meg.",
+      "gridPos": { "x": 0, "y": 10, "w": 12, "h": 9 },
+      "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "min", "max"] }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+          "expr": "metrics_value{host=\"$hostname\", service=~\"$service\", performanceLabel=~\".*_(in|out)_prct\"}",
+          "legendFormat": "{{service}} / {{performanceLabel}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Hibák és eldobott csomagok — $hostname / $service",
+      "description": "Errors és discards számlálók: increase() megmutatja, mennyi hiba keletkezett az adott időszakban (két mérés közötti különbség összesítve).",
+      "gridPos": { "x": 12, "y": 10, "w": 12, "h": 9 },
+      "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "showPoints": "never",
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "sum", "max"] }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
+          "expr": "increase(metrics_value{host=\"$hostname\", service=~\"$service\", performanceLabel=~\".*_(in|out)_(error|discard)\"}[$__interval])",
+          "legendFormat": "{{service}} / {{performanceLabel}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

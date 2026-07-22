@@ -73,8 +73,8 @@
       "targets": [
         {
           "datasource": { "type": "victoriametrics-datasource", "uid": "victoriametrics" },
-          "expr": "{host=\"$hostname\", service=~\"$service\"}",
-          "legendFormat": "{{service}} / {{__name__}}",
+          "expr": "metrics_value{host=\"$hostname\", service=~\"$service\"}",
+          "legendFormat": "{{service}} / {{performanceLabel}}",
           "refId": "A"
         }
       ]

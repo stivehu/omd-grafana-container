@@ -11,14 +11,26 @@ if [ "${PERF_BACKEND}" = "victoriametrics" ]; then
     # /api/v1/import/influx to produce the correct VM write endpoint.
     omd config default set PNP4NAGIOS off
 
-    # Configure Thruk to link performance graphs to the Grafana/VM dashboard.
-    # Macros: $HOST$ = hostname, $SERVICE$ = service description (empty for host checks).
+    # Inject _GRAFANA_DASHBOARD=vm-performance default into the generic-service Naemon
+    # template so services without an explicit override get the VM Performance dashboard.
+    # SNMP traffic services should set _GRAFANA_DASHBOARD = snmp-interface in their config.
+    NAEMON_CONF_D=/omd/sites/default/etc/naemon/conf.d
+    GENERIC_CFG=$(grep -rl 'name[[:space:]]*generic-service' "$NAEMON_CONF_D" 2>/dev/null | head -1)
+    if [ -n "$GENERIC_CFG" ] && ! grep -q '_GRAFANA_DASHBOARD' "$GENERIC_CFG"; then
+        sed -i '/name[[:space:]]*generic-service/a\    _GRAFANA_DASHBOARD    vm-performance' "$GENERIC_CFG"
+    fi
+
+    # Configure Thruk to link performance graphs to the Grafana dashboard specified
+    # by the _GRAFANA_DASHBOARD custom variable on each service.
+    # Custom variable macro: _GRAFANA_DASHBOARD → $HOSTNAME$ / $SERVICEDESC$ in Thruk.
     THRUK_LOCAL=/omd/sites/default/etc/thruk/thruk_local.conf
-    if [ -f "$THRUK_LOCAL" ] && ! grep -q 'vm-performance' "$THRUK_LOCAL"; then
+    if [ -f "$THRUK_LOCAL" ] && ! grep -q '_SERVICEGRAFANA_DASHBOARD' "$THRUK_LOCAL"; then
         cat >> "$THRUK_LOCAL" <<'EOF'
 
-# Performance graph links point to VictoriaMetrics via Grafana
-pnp_url = /default/grafana/d/vm-performance/vm-performance?orgId=1&var-hostname=$HOST$&var-service=$SERVICE$
+# Performance graph links use the _GRAFANA_DASHBOARD custom variable on each service.
+# Default (via generic-service template): vm-performance
+# SNMP traffic services: set _GRAFANA_DASHBOARD = snmp-interface
+pnp_url = /default/grafana/d/$_SERVICEGRAFANA_DASHBOARD$/$_SERVICEGRAFANA_DASHBOARD$?orgId=1&var-hostname=$HOSTNAME$&var-service=$SERVICEDESC$
 EOF
     fi
 else
