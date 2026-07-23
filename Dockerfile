@@ -52,6 +52,22 @@ RUN omd config default set GRAFANA on
 RUN omd config default set CORE naemon
 RUN omd config default set PNP4NAGIOS off
 
+# Install nagmapReborn (network map dashboard)
+RUN apt-get install -y --no-install-recommends git \
+    && cd /omd/sites/default/var && git clone https://github.com/stivehu/nagmapReborn.git \
+    && chown -R default:default /omd/sites/default/var/nagmapReborn \
+    && apt-get purge -y git && apt-get autoremove -y
+COPY var_nagmap.conf /omd/sites/default/etc/apache/conf.d/
+
+# nagmapReborn reads host/map data from a classic "nagios.cfg"-style file, and
+# host status from a classic status.dat - neither of which Naemon produces on
+# its own (status_file is a no-op; see nagmap-status-bridge.py). nagmap-hosts.cfg
+# gives it an absolute-path entry point into the real Naemon object config, and
+# nagmap-status-bridge.py regenerates status.dat from Livestatus periodically.
+COPY nagmap-hosts.cfg /omd/sites/default/etc/naemon/nagmap-hosts.cfg
+COPY nagmap-status-bridge.py /usr/local/bin/nagmap-status-bridge.py
+RUN chmod +x /usr/local/bin/nagmap-status-bridge.py
+
 # Install VictoriaMetrics server
 # Latest releases: https://github.com/VictoriaMetrics/VictoriaMetrics/releases
 ARG VM_VERSION=1.102.0

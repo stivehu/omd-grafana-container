@@ -49,5 +49,16 @@ if [ "${PERF_BACKEND}" = "victoriametrics" ]; then
     fi
 fi
 
+
+# Regenerate the classic status.dat that nagmapReborn reads, from Livestatus,
+# every 10s (Naemon's own status_file writer is a no-op - see
+# nagmap-status-bridge.py for why).
+(
+    while true; do
+        python3 /usr/local/bin/nagmap-status-bridge.py
+        sleep 10
+    done
+) &
+
 omd status
 tail -f /dev/null
