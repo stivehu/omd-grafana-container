@@ -49,6 +49,17 @@ if [ "${PERF_BACKEND}" = "victoriametrics" ]; then
     fi
 fi
 
+# Apply a custom omdadmin password from PASSWORD (set via .env / --env-file),
+# if given. Must run after "omd start" above, once the site is fully up -
+# setting it earlier risks the site's own htpasswd being (re)written over it
+# during startup.
+if [ -n "${PASSWORD}" ]; then
+    HTPASSWD_FILE=/omd/sites/default/etc/htpasswd
+    htpasswd -b -m "$HTPASSWD_FILE" omdadmin "${PASSWORD}"
+    chown default:default "$HTPASSWD_FILE"
+    chmod 664 "$HTPASSWD_FILE"
+fi
+
 
 # Regenerate the classic status.dat that nagmapReborn reads, from Livestatus,
 # every 10s (Naemon's own status_file writer is a no-op - see

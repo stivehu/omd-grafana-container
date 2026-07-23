@@ -47,6 +47,29 @@ docker compose up -d
 
 > **Note on `conf.d` volume mount:** Mounting `./conf.d/` replaces the image's built-in `conf.d` entirely — place your host, service, and command definitions there. The nagflux perfdata processing commands (`omd-process-*-perfdata-file-nagflux`) are baked into a separate `nagflux.d` directory inside the image and are not affected by this mount.
 
+## Custom omdadmin password
+
+By default the `omdadmin` web UI password is `omd`. To set your own, copy `.env.example` to `.env` and set `PASSWORD`:
+
+```bash
+cp .env.example .env
+# edit .env: PASSWORD=your-password-here
+```
+
+Add `env_file` to the compose service so Docker passes it through as an environment variable:
+
+```yaml
+services:
+  omd-grafana:
+    image: stivehu/omd-grafana
+    env_file:
+      - path: .env
+        required: false
+    ...
+```
+
+`required: false` means the service still starts fine if `.env` doesn't exist — in that case `PASSWORD` is unset and the default `omd` password is kept. The password is applied once, at container startup, right after `omd start`.
+
 ## Performance backend
 
 The backend for storing and displaying performance graphs is selectable via the `PERF_BACKEND` environment variable:
