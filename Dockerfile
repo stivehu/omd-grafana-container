@@ -8,7 +8,7 @@
 # pass: omd
 # It takes a few seconds till the first Performancedata is created.
 
-FROM debian:12
+FROM debian:13
 
 LABEL maintainer="Gábor István, stive.hu@gmail.com"
 
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y curl ca-certificates
 RUN curl -fsS "https://labs.consol.de/repo/stable/monitoring-repo-consol-de-gpg-2026.asc" \
     -o /etc/apt/trusted.gpg.d/monitoring-repo-consol-de-gpg-2026.asc
 
-RUN echo "deb [signed-by=/etc/apt/trusted.gpg.d/monitoring-repo-consol-de-gpg-2026.asc] http://labs.consol.de/repo/stable/debian bookworm main" \
+RUN echo "deb [signed-by=/etc/apt/trusted.gpg.d/monitoring-repo-consol-de-gpg-2026.asc] http://labs.consol.de/repo/stable/debian trixie main" \
     > /etc/apt/sources.list.d/labs-consol-stable.list
 
 RUN apt-get update && apt-get install -y omd-labs-edition net-tools iputils-ping bc locales \
@@ -29,10 +29,11 @@ RUN apt-get update && apt-get install -y omd-labs-edition net-tools iputils-ping
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-# libssl1.1 compatibility for plugins compiled against OpenSSL 1.1 (Debian 8/9 era)
-RUN echo "deb http://security.debian.org/debian-security bullseye-security main" \
+# libssl1.1 compatibility for plugins compiled against OpenSSL 1.1 (Debian 8/9 era); trixie only ships OpenSSL 3
+# (bullseye is EOL; its packages now live on archive.debian.org)
+RUN echo "deb http://archive.debian.org/debian-security bullseye-security main" \
         > /etc/apt/sources.list.d/bullseye-security.list \
-    && apt-get update \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
     && apt-get install -y libssl1.1 \
     && rm /etc/apt/sources.list.d/bullseye-security.list \
     && apt-get update
