@@ -37,6 +37,17 @@ else
     omd config default set PNP4NAGIOS on
 fi
 
+# The baked-in nagflux.d/nagflux-commands.cfg is only a fallback for a mounted
+# conf.d that lacks histou.cfg. When conf.d already defines these commands
+# (stock OMD 5.80+ histou.cfg), drop the fallback or Naemon refuses the
+# duplicate definitions and does not start.
+NAGFLUX_FALLBACK=/omd/sites/default/etc/naemon/nagflux.d/nagflux-commands.cfg
+if grep -rqs --include='*.cfg' 'command_name[[:space:]]*omd-process-service-perfdata-file-nagflux' /omd/sites/default/etc/naemon/conf.d; then
+    [ -f "$NAGFLUX_FALLBACK" ] && mv "$NAGFLUX_FALLBACK" "$NAGFLUX_FALLBACK.disabled"
+elif [ -f "$NAGFLUX_FALLBACK.disabled" ]; then
+    mv "$NAGFLUX_FALLBACK.disabled" "$NAGFLUX_FALLBACK"
+fi
+
 service apache2 restart
 omd start
 

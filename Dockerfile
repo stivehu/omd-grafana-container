@@ -56,9 +56,10 @@ RUN omd config default set PNP4NAGIOS off
 # Install nagmapReborn (network map dashboard)
 RUN apt-get install -y --no-install-recommends git \
     && cd /omd/sites/default/var && git clone https://github.com/stivehu/nagmapReborn.git \
-    && chown -R default:default /omd/sites/default/var/nagmapReborn \
+    && chown -R root:root /omd/sites/default/var/nagmapReborn \
+    && chown default:default /omd/sites/default/var/nagmapReborn/cache \
     && apt-get purge -y git && apt-get autoremove -y
-COPY var_nagmap.conf /omd/sites/default/etc/apache/conf.d/
+COPY var_nagmap.conf 00_nagmap_deny.conf /omd/sites/default/etc/apache/conf.d/
 
 # nagmapReborn reads host/map data from a classic "nagios.cfg"-style file, and
 # host status from a classic status.dat - neither of which Naemon produces on
