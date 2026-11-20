@@ -43,7 +43,7 @@ RUN sed -i 's/main/main non-free/g' /etc/apt/sources.list.d/debian.sources
 RUN apt -y update
 
 # 2. Install the downloader
-RUN apt -y install snmp-mibs-downloader python3-nagiosplugin
+RUN apt -y install snmp-mibs-downloader python3-nagiosplugin python3-retrying
 
 RUN omd create default
 RUN omd config default set TMPFS off
@@ -52,6 +52,17 @@ RUN omd config default set NAGFLUX on
 RUN omd config default set GRAFANA on
 RUN omd config default set CORE naemon
 RUN omd config default set PNP4NAGIOS off
+
+# telnetlib was removed from the standard library in Python 3.13 (trixie), but
+# local plugins (check_cts_sfp.py) still import it. Install the unchanged
+# backport into the site's local Python path (no pip in the image).
+ARG TELNETLIB_VERSION=3.13.0
+RUN U=$(curl -fsS "https://pypi.org/pypi/standard-telnetlib/${TELNETLIB_VERSION}/json" \
+        | python3 -c 'import json,sys; print([f["url"] for f in json.load(sys.stdin)["urls"] if f["filename"].endswith(".whl")][0])') \
+    && curl -fsSL "$U" -o /tmp/telnetlib.whl \
+    && python3 -m zipfile -e /tmp/telnetlib.whl /omd/sites/default/local/lib/python/ \
+    && rm /tmp/telnetlib.whl \
+    && chown -R default:default /omd/sites/default/local/lib/python
 
 # Install nagmapReborn (network map dashboard)
 RUN apt-get install -y --no-install-recommends git \
